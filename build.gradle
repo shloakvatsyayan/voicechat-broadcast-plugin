@@ -2,12 +2,25 @@ plugins {
     id 'java'
 }
 
-sourceCompatibility = JavaLanguageVersion.of(java_version as int)
-targetCompatibility = JavaLanguageVersion.of(java_version as int)
+def javaVersion = (java_version as String).toInteger()
 
-archivesBaseName = archives_base_name
 version = plugin_version
 group = maven_group
+
+base {
+    archivesName = archives_base_name
+}
+
+java {
+    toolchain {
+        languageVersion = JavaLanguageVersion.of(javaVersion)
+    }
+}
+
+tasks.withType(JavaCompile).configureEach {
+    options.release = javaVersion
+    options.compilerArgs += '-Xlint:deprecation'
+}
 
 processResources {
     filesMatching("plugin.yml") {
@@ -17,13 +30,8 @@ processResources {
 }
 
 dependencies {
-    implementation 'com.google.code.findbugs:jsr305:3.0.2'
-    // To use this dependency, you need to compile bukkit by yourself
-    // See https://www.spigotmc.org/wiki/buildtools/
-    // implementation "org.bukkit:craftbukkit:${bukkit_version}"
-    // Use this dependency if you don't want to compile bukkit
-    implementation "io.papermc.paper:paper-api:${bukkit_version}"
-    implementation "de.maxhenkel.voicechat:voicechat-api:${voicechat_api_version}"
+    compileOnly "io.papermc.paper:paper-api:${bukkit_version}"
+    compileOnly "de.maxhenkel.voicechat:voicechat-api:${voicechat_api_version}"
 }
 
 repositories {
@@ -32,9 +40,8 @@ repositories {
         name = "henkelmax.public"
         url = 'https://maven.maxhenkel.de/repository/public'
     }
-    // You need this maven repository if you want to use the paper dependency
     maven {
-        url = uri("https://papermc.io/repo/repository/maven-public/")
+        name = "papermc"
+        url = uri("https://repo.papermc.io/repository/maven-public/")
     }
-    mavenLocal()
 }
